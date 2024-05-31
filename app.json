@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "UIProject",
+    "slug": "UIProject",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "permissions": [
+      "CAMERA"
+    ],
+    "android": {
+      "permissions": [
+        "CAMERA"
+      ],
+      "package": "com.anonymous.UIProject"
+    },
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "packagerOpts": {
+      "port": 5000
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/adaptive-icon.png",
+      "backgroundColor": "#ffffff"
+    },
+    "package": "com.anonymous.UIProject"
+  },"plugins": [
+    [
+      "expo-barcode-scanner",
+      {
+        "cameraPermission": "Allow $(PRODUCT_NAME) to access camera.",
+        "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+        "recordAudioAndroid": true
+      }
+    ]
+  ],
+  "web": {
+    "favicon": "./assets/favicon.png"
+  }
+}
