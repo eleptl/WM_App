@@ -107,7 +107,7 @@ export default function PeriodSearchBar({ index }) {
 
                 <IconButton
                   width='80%'
-                  icon="calendar"
+                  // icon="calendar"
                   size={30}
                   onPress={() => setShowDatePickerRange(true)}
                 />
@@ -133,7 +133,7 @@ export default function PeriodSearchBar({ index }) {
               <View>
                 <IconButton
                   width='80%'
-                  icon="calendar"
+                  // icon="calendar"
                   iconColor="black"
                   iconStyle=''
 

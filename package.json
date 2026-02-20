@@ -6,7 +6,8 @@
     "start": "expo start",
     "web": "expo start --web",
     "proxy": "http://127.0.0.1:5000",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "android": "expo run:android"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -31,7 +32,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "expo": "~49.0.0",
-    "expo-calendar": "~15.0.8",
     "expo-camera": "~17.0.10",
     "expo-clipboard": "~8.0.8",
     "expo-crypto": "~15.0.8",
@@ -39,6 +39,7 @@
     "expo-dev-launcher": "^6.0.20",
     "expo-image-picker": "~17.0.10",
     "expo-module-scripts": "^3.4.1",
+    "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~3.0.9",
     "formik": "^2.4.5",
     "i": "^0.3.7",
