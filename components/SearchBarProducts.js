@@ -1,12 +1,12 @@
-import { colors } from '@material-ui/core';
+//import { colors } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, form, StatusBar, Pressable, Button, TouchableOpacity, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 //icon
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { JoinFull } from '@mui/icons-material';
-import { autocompleteClasses } from '@mui/material';
+//import { JoinFull } from '@mui/icons-material';
+//import { autocompleteClasses } from '@mui/material';
 //axios
 import axios from 'axios';
 
@@ -21,16 +21,20 @@ const SearchBarProducts = ({ onSearch }) => {
   //navigation
   const navigation = useNavigation();
 
+  const [text, setText] = useState('');
+
+  //handle method
+
   //gestione suggerimenti
   const handleSubmit1 = async (text) => {
 
-    console.log('textCerco', text)
     try {
       if (text === '' || text === null || text.length === 0) {
         setSuggestions([])
       }
-      text = text.toUpperCase(text)
-      const response = await axios.get(`http://192.168.1.161:5000/api/prodotto/matnrList?q=${text}`); /*http://192.168.140.227:5000/api/prodotto/matnrList?q=*/
+      text = text.toUpperCase(text) //192.168.177.227
+      // const response = await axios.get(`http://192.168.1.9:5000/api/prodotto/matnrList?q=${text}`); 
+      const response = await axios.get(`http://192.168.1.161:5000/api/prodotto/matnrList?q=${text}`);
       setSuggestions(response.data.filter(item => item.includes(text))); // Filtra i suggerimenti che contengono la parte dell'input
     } catch (error) {
       console.error('Error fetching suggestions:', error);
@@ -43,24 +47,19 @@ const SearchBarProducts = ({ onSearch }) => {
     setSuggestions([]); // Nascondi i suggerimenti
   };
 
-  //cambaiamento testo digitato
+  //cambiamento testo digitato
   const handleChange = (text) => {
     setSearchTerm(text);
     text = text.toUpperCase(text)
     handleSubmit1(text)
-    console.log('text', text)
   }
-
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(searchTerm);
     onSearch(searchTerm);
     setSearchTerm("")
   };
 
-  const [text, setText] = useState('');
-  //copio testo in barra di ricerca
   const handleCopyText = async () => {
     if (text.trim() === searchTerm) {
       Alert.alert('Error', 'Text input is empty');
@@ -100,7 +99,7 @@ const SearchBarProducts = ({ onSearch }) => {
           <ScrollView style={styles.suggestionsContainer}>
             {suggestions.map((item, index) => (
               <TouchableOpacity key={index} onPress={() => handleSuggestionPress(item)}>
-                <Text>{item}</Text>
+                <Text style={styles.itemSugg}>{item}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -124,9 +123,13 @@ const styles = StyleSheet.create({
     marginTop: -15,
     padding: 10,
     width: 130,
+    backgroundColor: '#fffe',
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
 
     alignSelf: 'center',
-    width: '50%',
+    width: '53%',
     margin: 10,
     alignSelf: 'center',
     paddingLeft: 10
@@ -157,7 +160,8 @@ const styles = StyleSheet.create({
     width: '60%',
     margin: 10,
     alignSelf: 'center',
-    paddingLeft: 10
+    paddingLeft: 10,
+    backgroundColor: '#fffe',
   },
   searchText: {
     color: 'white',
@@ -171,7 +175,14 @@ const styles = StyleSheet.create({
   copyIcon: {
     paddingTop: 20,
     paddingLeft: '30%'
-  }
+  },
+  itemSugg: {
+    fontSize: 17,
+    alignSelf: 'center',
+    marginBottom: '1.5%',
+    borderBottomWidth: 1,
+    borderBottomColor: 'black',
+  },
 });
 
 

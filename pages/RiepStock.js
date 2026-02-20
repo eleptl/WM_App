@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text, StatusBar, TouchableOpacity, Button, BackHandler, Modal, LogBox } from 'react-native';
-import { useEffect } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { useRoute, useNavigationState } from '@react-navigation/native';
 //icon user/setting
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,31 +17,28 @@ import { useCameraPermissions } from "expo-image-picker";
 import CameraScan from '../components/CameraScan.js';
 
 
-const RiepStock = () => {
+const RiepStock = ({ }) => {
+
+    //navigazione
     const navigation = useNavigation();
+
+    //dati route
     const route = useRoute();
     const username = route.params.username;
-
-    console.log('username.RiepSock: ', username)
 
     //permessi fotocamera
     const [status, requestPermissions] = useCameraPermissions();
 
-    const requestPermissionAgain = () => {
-        if (status.granted) {
-            status.canAskAgain = false
-            navigation.navigate('CameraScan', { username })
-            console.log(status)
-        } else {
-            Linking.openSettings();
-            requestPermissions();
-            console.log(status)
-        }
-    }
-
+    //useEffect
     useEffect(() => {
         if (!status?.granted) requestPermissions();
     }, []);
+
+    //traccia tab proveniente (diverse tab nella stessa page) 
+    const navigationState = useNavigationState(state => state);
+    const currentTabIndex = navigationState.routes[navigationState.index].state?.index ?? 0;
+    const currentTab = currentTabIndex === 1 ? 'Location' : 'Product';
+
 
     return (
 
@@ -58,20 +55,22 @@ const RiepStock = () => {
                     <Ionicons name="person-circle-sharp" size={50} color="white" align='right' style={styles.iconBar} />
                 </TouchableOpacity>
             </View>
-            <ModNavigator username={username} />
+
+            <ModNavigator username={username} sourcePage={route.name} />
+
             <View style={styles.containerEndBar}>
-                <TouchableOpacity style={styles.containerBack} onPress={() => navigation.navigate('EnterScreen', { username: username } /*+ { hasPermission: hasPermission }*/)}>
+                <TouchableOpacity style={styles.containerBack} onPress={() => navigation.navigate('EnterScreen', { username: username, sourcePage: route.name } /*+ { hasPermission: hasPermission }*/)}>
                     <Ionicons name="arrow-undo-outline" size={35} color="white" />
                 </TouchableOpacity>
 
                 {/**TOUCOP- SCANNER */}
-                <TouchableOpacity style={styles.containerScan} onPress={() => {console.log(status); status.granted ? navigation.navigate('CameraScan', { username }) : requestPermissions()}  }/*navigation.navigate('CameraScan', { username: username }  && { count: count }*/>
+                <TouchableOpacity style={styles.containerScan} onPress={() => { status.granted ? navigation.navigate('CameraScan', { username: username, sourcePage: currentTab }) : requestPermissions() }}/*navigation.navigate('CameraScan', { username: username }  && { count: count }*/>
 
                     <MaterialCommunityIcons name="line-scan" size={75} color="white" />
 
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.containerHome} onPress={() => navigation.navigate('EnterScreen', { username: username })}>
+                <TouchableOpacity style={styles.containerHome} onPress={() => navigation.navigate('EnterScreen', { username: username, sourcePage: route.name })}>
                     <AntDesign name="home" size={35} color="white" />
                 </TouchableOpacity>
             </View>
@@ -83,12 +82,6 @@ const RiepStock = () => {
 const styles = StyleSheet.create({
     ///
     camera: {
-    },
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#273B4A',
     },
     containerScan: {
         backgroundColor: '#ff6677',
@@ -136,11 +129,10 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
-    /////
     container: {
         flex: 1,
         paddingTop: StatusBar.currentHeight,
-        backgroundColor: '#f6f6f6', /**#f6f6f6 */
+        backgroundColor: '#f6f6f6',
     },
     topBar: {
         paddingTop: StatusBar.currentHeight - 10,

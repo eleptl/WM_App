@@ -13,15 +13,18 @@ import ImageViewer from '../components/ImageViewer';
 import Enter from '../pages/Enter';
 //icon
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { HistoryToggleOff } from '@mui/icons-material';
+//import { HistoryToggleOff } from '@mui/icons-material';
 import { AntDesign } from '@expo/vector-icons';
 
 const Login = () => {
   const navigation = useNavigation();
 
   const PlaceholderImage = require('../assets/images/img1.jpg');
+
+  //credenziali isnerite
   const [username, setUser] = useState("");
   const [password, setPw] = useState("");
+
   const [errors, setErrors] = useState({});
 
   //controllo dati inserimento
@@ -52,7 +55,6 @@ const Login = () => {
 
 
   const handleButtonLogin = (navigation) => {
-    console.log('login premuto');
     validateLogin();
   }
 

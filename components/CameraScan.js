@@ -1,19 +1,29 @@
-
-
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 // // icon scan
 import { Ionicons } from '@expo/vector-icons';
-// // icon back
-// import { AntDesign } from '@expo/vector-icons';
+//import { Navigate } from 'react-router-native';
+
+import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import axios from 'axios';
 
 
-export default function App() {
+export default function CameraScan() {
+
+  //navigazione
+  const navigation = useNavigation();
+
+  //route e dati
+  const route = useRoute();
+  const { username } = route.params;
+  const source = route.params.sourcePage;
+
+  //gestione fotocamera
   const [facing, setFacing] = useState('back');
+  //permessi
   const [permission, requestPermission] = useCameraPermissions();
-
-
 
 
   if (!permission) {
@@ -31,25 +41,55 @@ export default function App() {
     );
   }
 
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  }
+
+  //   const handleCodeScanned = ({ type, data }) =>{
+  //     alert(data)
+  const handleCodeScanned = async ({ type, data }) => {
+    data = data.toUpperCase();
+
+    if (source === 'Product') {
+      navigation.navigate('ProductsResult', { searchTerm: data, username, sourcePage: 'Product' });
+    } else if (source === 'Location') {
+      navigation.navigate('LocationsResult', { searchTerm: data, username, sourcePage: 'Location' })
+    } else if (source === 'ProductsResult') {
+      navigation.navigate('LocationsResult', { searchTerm: data, username, sourcePage: 'ProductsResult' })
+    } else if (source === 'LocationsResult') {
+      navigation.navigate('ProductsResult', { searchTerm: data, username, sourcePage: 'LocationsResult' });
+    } else {
+      Alert.alert(
+        'Scanned code is not a valid product or location',
+        'The scanned code is neither a product nor a location. Do you want to try again?',
+        [
+          { text: 'Go Back', onPress: () => navigation.navigate(sourcePage, { username: username, sourcePage: route.name }), style: 'cancel' },
+        ],
+        { cancelable: false }
+      );
+    }
+
+  };
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
+      <View style={{ backgroundColor: 'white', height: '7%', alignItems: 'baseline', paddingTop: '7%' }}>
+        <TouchableOpacity onPress={() => navigation.goBack({ username: username })}>
+          <Ionicons style={{ alignSelf: 'baseline' }} name="arrow-back-circle" size={30} color="black" />
+        </TouchableOpacity>
+      </View>
+
+      <CameraView style={styles.camera} facing={facing} barcodeScannerSettings={{
+        barcodeTypes: ["qr", 'aztec', 'ean13', 'ean8', 'pdf417', 'upc_e', 'datamatrix', 'code39', 'code93', 'itf14', 'codabar', 'code128', 'upc_a'],
+      }}
+        onBarcodeScanned={(txt) => handleCodeScanned(txt)}>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            {/**<Text style={styles.text}>Flip Camera</Text>**/}
-          </TouchableOpacity>
+
         </View>
       </CameraView>
-      <View style={ {backgroundColor: 'white', height: '7%', alignItems:'center', paddingTop: '1.5%'}  }>  
-         
-        <TouchableOpacity style={styles.buttonScan} onPress={() => console.log('scan premuto')}>
-           <Ionicons name="scan" size={48} color="black" />
+      <View style={{ backgroundColor: 'white', height: '7%', alignItems: 'center', paddingTop: '1.5%' }}>
+
+        <TouchableOpacity style={styles.buttonScan} >
+          <Ionicons name="scan" size={48} color="black" />
         </TouchableOpacity>
-        </View> 
+      </View>
     </View>
   );
 }
@@ -79,131 +119,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-
-
-// import React, { useState, useEffect } from 'react';
-// import { StyleSheet, Text, View, TouchableOpacity, Modal, Alert } from 'react-native';
-// import  Camera from 'react-native-camera' ;
-// // import { BarCodeScanner } from "expo-barcode-scanner";
-
-// import { useRoute } from '@react-navigation/native';
-// // icon scan
-// import { Ionicons } from '@expo/vector-icons';
-// // icon back
-// import { AntDesign } from '@expo/vector-icons';
-
-// // navigation
-// import { useNavigation } from '@react-navigation/native';
-
-
-// const CameraScan = () => {
-//     //navigazione
-//     const navigation = useNavigation();
-//     const [scanned, setScanned] = useState(false);
-
-//     const route = useRoute();
-//     const username = route.params.username;
-
-//     const handleBarCodeScanned = ({ type, data }) => {
-//         setScanned(true);
-//         alert(`Bar code with type ${type} and data ${data} has been scanned!`);
-//     };
-
-
-//     return (
-//         <View style={styles.container}>
-//             <TouchableOpacity style={styles.exit} onPress={() => navigation.goBack({ username } + {})}>
-//                 <AntDesign name="leftcircle" size={24} color="black" />
-//             </TouchableOpacity>
-//             <View style={styles.container}>
-//                 {/* <BarCodeScanner
-//                     onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-//                     style={StyleSheet.absoluteFillObject}
-//                 /> 
-//                  <Camera
-//                     // onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-//                     // style={StyleSheet.absoluteFillObject}
-//                 />*/} 
-//                 <Camera></Camera>
-                
-//             </View>
-//             <TouchableOpacity style={styles.buttonScan} onPress={() => console.log('scan premuto')}>
-//                 <Ionicons name="scan" size={48} color="black" />
-//             </TouchableOpacity>
-//         </View >
-//     );
-// }
-
-// const styles = StyleSheet.create({
-//     centeredView: {
-//         flex: 1,
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         marginTop: 22
-//     },
-//     exit: {
-//         paddingTop: '10%',
-//         paddingLeft: '2%'
-//     },
-//     modalView: {
-//         margin: 20,
-//         backgroundColor: 'white',
-//         borderRadius: 20,
-//         padding: 35,
-//         alignItems: 'center',
-//         shadowColor: '#000',
-//         shadowOffset: {
-//             width: 0,
-//             height: 2
-//         },
-//         shadowOpacity: 0.25,
-//         shadowRadius: 4,
-//         elevation: 5
-//     },
-//     openButton: {
-//         backgroundColor: '#F194FF',
-//         borderRadius: 20,
-//         padding: 10,
-//         elevation: 2,
-//         marginVertical: 10,
-//     },
-//     modalText: {
-//         marginBottom: 15,
-//         textAlign: 'center',
-//     },
-//     buttonScan: {
-//         alignSelf: 'center',
-//         paddingBottom: '5%'
-//     },
-//     exit: {
-//         paddingTop: '10%',
-//         paddingLeft: '2%',
-//         marginBottom: '2%'
-//     },
-//     buttonScan: {
-//         alignSelf: 'center',
-//         paddingBottom: '5%'
-//     },
-//     container: {
-//         flex: 1,
-//         flexDirection: 'column',
-//         justifyContent: 'center',
-//     },
-//     buttonContainer: {
-//         flex: 1,
-//         backgroundColor: 'transparent',
-//         flexDirection: 'row',
-//         margin: 20,
-//     },
-//     button: {
-//         flex: 0.1,
-//         alignSelf: 'flex-end',
-//         alignItems: 'center',
-//     },
-//     text: {
-//         fontSize: 18,
-//         color: 'white',
-//     },
-// });
-
-// export default CameraScan;

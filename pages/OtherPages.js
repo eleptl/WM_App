@@ -19,10 +19,13 @@ import { AntDesign } from '@expo/vector-icons';
 
 const OtherPages = () => {
 
+    //navigazione
     const navigation = useNavigation();
 
+    //route data
     const route = useRoute();
     const { username } = route.params;
+    
     return (
         <View style={styles.container}>
                         <View style={styles.topBar}>

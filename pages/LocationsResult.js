@@ -4,7 +4,7 @@ import { useReducer, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { TabView, SceneMap } from 'react-native-tab-view';
 import { useIsFocused, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { ListItem } from '@rneui/themed';
+//import { ListItem } from '@rneui/themed';
 //axios
 import axios from 'axios';
 
@@ -13,15 +13,15 @@ import { Linking } from "react-native";
 import { useCameraPermissions } from "expo-image-picker";
 //camera
 import { Camera } from 'expo-camera';
-import { BarCodeScanner } from "expo-barcode-scanner";
+//import { BarCodeScanner } from "expo-barcode-scanner";
 
 
 
 import SearchBar from '../components/SearchBarProducts';
-import { BorderColor, SpaceBar } from '@material-ui/icons';
+//import { BorderColor, SpaceBar } from '@material-ui/icons';
 import { stringifyValueWithProperty } from 'react-native-web/dist/cjs/exports/StyleSheet/compiler';
 import { useField } from 'formik';
-import { ChangeCircle, PersonOffTwoTone, ViewWeek } from '@mui/icons-material';
+//import { ChangeCircle, PersonOffTwoTone, ViewWeek } from '@mui/icons-material';
 import RiepStock from './RiepStock';
 
 //icon user/setting
@@ -32,44 +32,36 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 
 //CheckBox
-import { CheckBox, Icon } from '@rneui/themed'
+//import { CheckBox, Icon } from '@rneui/themed'
 //closePop-Up
 import { FontAwesome } from '@expo/vector-icons';
-import { stepButtonClasses } from '@mui/material';
+//import { stepButtonClasses } from '@mui/material';
 
 
 
 const LocationsResult = () => {
-    console.log('eccomiUB')
-
-    const route = useRoute();
-    let { index } = '';
-    let { searchTerm } = '';
-
-    if (!((index) === stringifyValueWithProperty(route.params))) {
-        index = stringifyValueWithProperty(route.params.index);
-        searchTerm = stringifyValueWithProperty(route.params.searchTerm)
-    }
     //navigazione
     const navigation = useNavigation();
-    //id/ubic popup 
-    const [inputID, setInputID] = useState('');
-    const [inputUbic, setInputUbic] = useState('');
-    //refresh
-    const [refresh, setRefresh] = useState(false)
     //focus
     const isFocused = useIsFocused();
-    //elementi
-    const [items, setItems] = useState([]);
-    //blocco ricerca/comunicazione
-    const [called, setCalled] = useState(false);
-    //visibilità Modal
+
+    //refresh
+    const [refresh, setRefresh] = useState(false)
+
+
+    //permessi fotocamera
+    const [status, requestPermissions] = useCameraPermissions();
+    const [scanned, setScanned] = useState(false);
+    //camera
+    const [viewCam, setViewCam] = useState(false)
+
+    //suggerimmenti ricerca
+    const [suggestions, setSuggestions] = useState([]);
+
+
+    //visibilità Modal --- POPUP
     //prova pop-up
     const [modalVisible, setModalVisible] = useState(false);
-    //input number in popUp
-    const [numberInput, setNumberInput] = useState('');
-    //editable input number
-    const [intNum, setIntNum] = useState(true)
     //View a comparsa prelievo
     const [viewPreleva, setViewPreleva] = useState(false)
     //view a comparsa prenotazione
@@ -90,41 +82,32 @@ const LocationsResult = () => {
     const [viewConfermaPrelievoS, setConfPrelievoS] = useState(false)
     //pop up conferma prenotazione
     const [viewConfermaPrenotaS, setConfPrenotaS] = useState(false)
+
+    //id/ubic popup 
+    const [inputID, setInputID] = useState('');
+    const [inputUbic, setInputUbic] = useState('');
+    //elementi ricerca
+    const [items, setItems] = useState([]);
+    //input number in popUp
+    const [numberInput, setNumberInput] = useState('');
+    //editable input number
+    const [intNum, setIntNum] = useState(true)
     //disponibilità merce
     const [dispon, setDispon] = useState(true)
     //capire se e seleIonato o no 'spostamento'
     const [spostamento, setSpostamento] = useState(false)
-    //prova verme
+
+    //Dati prodotto
     const [vermeValue, setVermeValue] = useState(0);
     const [prenotValue, setPrenotValue] = useState(0);
-    //id materiale
     const [matnrValue, setMatnrValue] = useState('')
-    //stato materiale in magazzino
+    const [prenSpost, setPrenSpost] = useState(0);
+    const [pzArrivo, setPzArrivo] = useState(0);
     const [bestqValue, setBestqValue] = useState('')
-    //ubicazione da cui seleziono il prodotto su cui esiste gia il prodotto
     const [lgplaValue, setLgplaValue] = useState('')
     const [lgortValue, setLgortValue] = useState('')
-    //ERRORE lgpla
-    const [viewErroreSpostamento, setViewErrore] = useState(false)
-    //camera
-    const [viewCam, setViewCam] = useState(false)
 
-    console.log('modNavParams: ', route.params.username)
-    const username = route.params.username
-
-    //permessi fotocamera
-    const [status, requestPermissions] = useCameraPermissions();
-    const [scanned, setScanned] = useState(false);
-
-    //suggerimenti ubicazione input
-    //suggerimmenti
-    const [suggestions, setSuggestions] = useState([]);
-
-    const handleBarCodeScanned = ({ type, data }) => {
-        setScanned(true);
-        alert(`Bar code with type ${type} and data ${data} has been scanned!`);
-    };
-
+    //Permessi Fotocamera
     const requestPermissionAgain = () => {
         if (status.granted) {
             status.canAskAgain = false
@@ -132,23 +115,59 @@ const LocationsResult = () => {
         } else {
             Linking.openSettings();
             requestPermissions();
-            console.log(status)
+            console.log('status fotocamera', status)
         }
     }
 
-    const permesso = () => {
-        Linking.openSettings();
-        requestPermissions();
-        console.log(status)
+    //ERRORE lgpla
+    const [viewErroreSpostamento, setViewErrore] = useState(false)
+
+
+    //dati route
+    const route = useRoute();
+    const username = route.params.username;
+    let { index } = '';
+    let { searchTerm } = '';
+
+    if (!((index) === stringifyValueWithProperty(route.params))) {
+        index = stringifyValueWithProperty(route.params.index);
+        searchTerm = stringifyValueWithProperty(route.params.searchTerm)
     }
 
+
+    if (!((index) === stringifyValueWithProperty(route.params))) {
+        if (route.params.index != null) {
+            index = stringifyValueWithProperty(route.params.index);
+        } else {
+            // index = 'http://192.168.1.9:5000/api/ubicazione/?lgpla='; 
+            index = 'http://192.168.1.161:5000/api/ubicazione/?lgpla=';
+        }
+
+        searchTerm = stringifyValueWithProperty(route.params.searchTerm).toUpperCase();
+        index = index + searchTerm;
+    }
+
+
+    //useEffect
     useEffect(() => {
         handleSearch(index)
-        console.log('nInput  useEffect:', numberInput)
     }, [refresh])
 
 
+    //handle method
+    const handleBarCodeScanned = ({ type, data }) => {
+        setScanned(true);
+        alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+    };
 
+
+    //permesso fotocamera
+    const permesso = () => {
+        Linking.openSettings();
+        requestPermissions();
+    }
+
+    //ricerca
     const handleSearch = async (index) => {
         const err = 'nessun dato trovato';
 
@@ -163,25 +182,25 @@ const LocationsResult = () => {
 
             if (ubicazioni.length === 0) {
                 alert('Nessuna ubicazione trovata con il codice inserito (LGPLA)')
-                navigation.navigate('RiepStockScreen', { username: username })
+                navigation.navigate('RiepStockScreen', { username: username, sourcePage: route.name })
             }
         } catch (err) {
             console.error('Error fetching data:', err);
             alert('ERRORE DI CONNESSIONE')
-            navigation.navigate('RiepStockScreen', { username: username })
+            navigation.navigate('RiepStockScreen', { username: username, sourcePage: route.name })
         };
     };
 
     //function
     //suggerimenti input ubicazione
     const handleSubmit1 = async (text) => {
-        console.log('textCerco', text)
         try {
             if (text === '' || text === null || text.length === 0) {
                 setSuggestions([])
             }
             text = text.toUpperCase(text)
-            const response = await axios.get(`http://192.168.1.161:5000/api/ubicazione/lgplaList?q=${text}`); /*`http://192.168.140.227:5000/api/ubicazione/lgplaList?q=${text}`)*/ 
+            // const response = await axios.get(`http://192.168.1.9:5000/api/ubicazione/lgplaList?q=${text}`);            
+            const response = await axios.get(`http://192.168.1.163:5000/api/ubicazione/lgplaList?q=${text}`);
             setSuggestions(response.data.filter(item => item.includes(text))); // Filtra i suggerimenti che contengono la parte dell'input
         } catch (error) {
             console.error('Error fetching suggestions:', error);
@@ -197,7 +216,7 @@ const LocationsResult = () => {
     //cambio numero
     const handleChangeNumber = (input) => {
         if (input === ' ')
-            console.log('Il valore non può essere nullo')        //errore -->il valore non può essere nullo 
+            Alert('Il valore non può essere nullo')
         // Rimuovi eventuali caratteri non numerici usando una regex
         const formattedInput = input.replace(/[^0-9]/g, '');
         setNumberInput(formattedInput);
@@ -212,10 +231,7 @@ const LocationsResult = () => {
     };
     //Button Spostamento pop-up
     const handlePressSpostamento = () => {
-
-        console.log('gestion Spostamento pop-up')
         setPrenotValue(prenotValue)
-        console.log('bbb:', prenotValue)
 
         if (selectedIndex !== 1 && selectedIndex !== 0) {
             alert('SCELTA OBBLIGATORIA')
@@ -228,11 +244,9 @@ const LocationsResult = () => {
         setNumberInput(numberInput);
 
         // Controlla se il numero inserito supera il valore "verme" memorizzato
-        if (parseInt(numberInput) > vermeValue || parseInt(numberInput) > vermeValue - prenotValue) { //guardo qua
-            console.log('PREN VALUE CONSUMO', prenotValue)
+        if (parseInt(numberInput) > vermeValue || parseInt(numberInput) > (vermeValue - prenotValue - prenSpost + pzArrivo)) {
             //editable input number
             setIntNum(true);
-            console.log('diponibilità', dispon)
             setNumberInput('')
             alert('La quantità inserita supera la disponibilità del prodotto.');
             setDispon(false)
@@ -253,8 +267,8 @@ const LocationsResult = () => {
                     setViewPrenota(false)
                 }
         }
-        console.log('gestion Spostmento pop-up')
     };
+
     //Button Consumo pop-up
     const handlePressConsumo = () => {
         setPrenotValue(prenotValue)
@@ -271,7 +285,7 @@ const LocationsResult = () => {
                 setNumberInput(numberInput);
 
                 // Controlla se il numero inserito supera il valore "verme" memorizzato
-                if (parseInt(numberInput) > vermeValue || parseInt(numberInput) > vermeValue - prenotValue) { //guardo qua
+                if (parseInt(numberInput) > vermeValue || parseInt(numberInput) > (vermeValue - prenotValue - prenSpost + pzArrivo)) { //guardo qua
                     console.log('PREN VALUE CONSUMO', prenotValue)
                     //editable input number
                     setIntNum(true);
@@ -296,6 +310,7 @@ const LocationsResult = () => {
             }
 
     };
+
     //Button Annulla
     const handlePressAnnulla = () => {
         if (viewCam) {
@@ -316,8 +331,10 @@ const LocationsResult = () => {
             console.log('Gestione Annulla Preleva')
         }
     }
+
     //Button Conferma
     const handlePressConferma = () => {
+        console.log('SPERIAMO', matnrValue, lgplaValue, lgortValue, bestqValue, numberInput)
         if (viewCam) {
             alert('Inquadra il codice di Destinazione o esci dalla modalità scanner')
             return
@@ -329,6 +346,8 @@ const LocationsResult = () => {
                 alert('ID OBBLIGATORIO');
                 return;
             } else {
+                // axios.post(`http://192.168.1.9:5000/api/updateConsumo/?MATNR=${matnrValue}&LGPLA=${lgplaValue}&MENGE=${numberInput}&LGORT=${lgortValue}&nID=${inputID}`);  
+                axios.post(`http://192.168.1.163:5000/api/updateConsumo/?MATNR=${matnrValue}&LGPLA=${lgplaValue}&MENGE=${numberInput}&LGORT=${lgortValue}&nID=${inputID}`);                    //file consumoData
                 if (selectedIndex === 0) {
                     setConfPrelievo(true);
                     setPopView(false);
@@ -336,6 +355,7 @@ const LocationsResult = () => {
                     console.log('modifyPreleva')
                     modifyPreleva()
                     console.log('modifyPreleva1')
+
                 }
 
                 if (selectedIndex === 1) {
@@ -365,7 +385,6 @@ const LocationsResult = () => {
     };
 
     //--prenota spostamento
-
     const modifyPrelevaS = () => {
 
         console.log('PRELIEVO PER SPOSTAMENTO')
@@ -382,9 +401,8 @@ const LocationsResult = () => {
                 toMatnr: matnrValue,
                 quantity: parseInt(numberInput)
             };
-
-            console.log('dato con chiamata: ', newData)
-            axios.put('http://192.168.1.161:5000/api/ubicazione/spost'/*'http://192.168.140.227:5000/api/ubicazione/spost'*/, newData)
+            // axios.put('http://192.168.1.9:5000/api/ubicazione/spost', newData) 
+            axios.put('http://192.168.1.163:5000/api/ubicazione/spost', newData)
                 .then(response => {
                     console.log('ok')
 
@@ -403,8 +421,6 @@ const LocationsResult = () => {
         }
     }
 
-    /*const modifyPrenotaS*/
-
     const modifyPrenotaS = () => {
         console.log('PRELIEVO PER SPOSTAMENTO')
         console.log(viewPrenotaS)
@@ -422,7 +438,8 @@ const LocationsResult = () => {
             };
 
             console.log('dato con chiamata: ', newData)
-            axios.put('http://192.168.1.161:5000/api/ubicazione/spost1'/*'http://192.168.140.227:5000/api/ubicazione/spost1'*/, newData)
+            // axios.put('http://192.168.1.9:5000/api/ubicazione/spost1', newData)
+            axios.put('http://192.168.1.163:5000/api/ubicazione/spost1', newData)
                 .then(response => {
 
                     setConfPrenotaS(true);
@@ -451,7 +468,8 @@ const LocationsResult = () => {
                 VERME: vermeValue,
                 ZPRENOTATI: prenotValue + parseInt(numberInput)
             }];
-            axios.put('http://192.168.1.161:5000/api/ubicazione'/* 'http://192.168.140.227:5000/api/ubicazione'*/, newData)
+            // axios.put('http://192.168.1.9:5000/api/ubicazione', newData) 
+            axios.put('http://192.168.1.163:5000/api/ubicazione', newData)
                 .then(response => {
                     console.log('ok')
                 })
@@ -464,8 +482,6 @@ const LocationsResult = () => {
     }
 
     //--prelievo spostamento
-    //modifyPrenota();
-
     const modifyPreleva = () => {
         console.log('PRELIEVO PER CONSUMO')
         if (viewPreleva) {
@@ -476,7 +492,8 @@ const LocationsResult = () => {
                 ZPRENOTATI: prenotValue
             }];
             console.log('input', numberInput)
-            axios.put('http://192.168.1.161:5000/api/ubicazione'/* 'http://192.168.140.227:5000/api/ubicazione'*/, newData)
+            // axios.put('http://192.168.1.9:5000/api/ubicazione', newData) 
+            axios.put('http://192.168.1.163:5000/api/ubicazione', newData)
                 .then(response => {
                     console.log('ok')
                 })
@@ -490,15 +507,9 @@ const LocationsResult = () => {
 
     //closePOpUp
     const handleClosePopup = () => {
-        //input number            
         setIntNum(true)
-
         setViewCam(false)
-
-        //disponibilità prodotti
         setDispon(true);
-
-        //reset input number/id/ubic
         setNumberInput('')
         setViewErrore(false)
         setInputUbic('')
@@ -514,18 +525,18 @@ const LocationsResult = () => {
         setConfPrelievoS(false)
         setConfPrenotaS(false)
         setIndex()
-        console.log('chiusura pop up')
     }
 
     const renderItem = ({ item }) => (
         <TouchableOpacity style={{ setcolor: 'black', opacity: 0.38, backgroundColor: item.data.BESTQ == 'Utilizzo Libero' ? '#276111' : item.data.BESTQ === 'Bloccato' ? '#FF735C' : '#FFB63C' }}
 
-            onPress={item.data.BESTQ == 'Controllo Qualita' || item.data.BESTQ == 'Bloccato' ?
-                () => { const bq = item.data.BESTQ; alert(bq); setModalVisible(false); setPopView(false); setLgortValue(item.data.LGORT); console.log(('perche non stampi: ', item.data.LGORT)) }
-                : item.data.VERME == item.data.ZPRENOTATI ? () => { alert('Tutti i pezzi sono stati prenotati'); setModalVisible(false); setPopView(false); setPrenotValue(item.data.ZPRENOTATI); setLgortValue(item.data.LGORT); console.log(('perche non stampi: ', item.data.LGORT)) }
+            onPress={(item.data.BESTQ == 'Controllo Qualita' || item.data.BESTQ == 'Bloccato') ?
+                () => { const bq = item.data.BESTQ; alert(bq); setModalVisible(false); setPopView(false); console.log(('perche non stampi: ', item.data.BESTQ)) } //setLgortValue(item.data.LGORT);
+                : parseInt(item.data.VERME) == (parseInt(item.data.ZPRENOTATI) + parseInt(item.data.ZPRENSPOSTAMENTO) - parseInt(item.data.ZARRIVO)) ? () => { alert('Tutti i pezzi sono stati prenotati'); setModalVisible(false); setPopView(false); setPrenotValue(item.data.ZPRENOTATI); setPzArrivo(item.data.ZARRIVO); setPrenSpost(item.data.ZPRENSPOSTAMENTO); }
                     : () => {
+                        console.log(item.data.VERME, item.data.ZPRENOTATI, item.data.ZPRENSPOSTAMENTO, item.data.ZARRIVO);
                         setModalVisible(true); setPopView(true);
-                        setLgplaValue(item.data.LGPLA), setMatnrValue(item.data.MATNR); setVermeValue(item.data.VERME); setBestqValue(item.data.BESTQ); setPrenotValue(item.data.ZPRENOTATI); setLgortValue(item.data.LGORT); console.log(('perche non stampi: ', item.data.LGORT))
+                        setLgplaValue(item.data.LGPLA), setPzArrivo(item.data.ZARRIVO); setPrenSpost(item.data.ZPRENSPOSTAMENTO); setMatnrValue(item.data.MATNR); setVermeValue(item.data.VERME); setBestqValue(item.data.BESTQ); setPrenotValue(item.data.ZPRENOTATI); setLgortValue(item.data.LGORT); console.log(('perche non stampi: ', item.data.LGORT))
                     }}>
             <View style={styles.item}>
                 <View style={styles.itemDetails}>
@@ -543,7 +554,7 @@ const LocationsResult = () => {
                     {item.data.ZPRENOTATI === 0 && item.data.BESTQ === 'Utilizzo Libero' &&
                         < Text style={styles.itemBestq}>{item.data.BESTQ}</Text>
                     }
-                    {(item.data.BESTQ === 'Bloccato') &&
+                    {item.data.BESTQ === 'Bloccato' &&
                         < Text style={styles.itemBestq}> {item.data.BESTQ} </Text>
                     }
                     { /**guardo qui -- non funziona*/}
@@ -610,7 +621,7 @@ const LocationsResult = () => {
                                     {/**view --> contenitore interno pop-up -- tutti gli elementi */}
                                     <Text style={styles.searchtermPopUp} >{searchTerm}</Text>
 
-                                    <Text style={styles.textPopUpG}>descrizione prodotto</Text>
+                                    <Text style={styles.textPopUpG}>{lgortValue}</Text>
                                     {/**View -- riga {quantità*+inserimentoNumero+Verme} */}
                                     <View style={{ textAlignVertical: 'center', flexDirection: 'row', alignItems: 'center' }}>
                                         <Text>Quantità*</Text>
@@ -671,7 +682,7 @@ const LocationsResult = () => {
                                         {//!(spostamento) &&
                                             <View style={styles.SearchView}>
                                                 <TextInput
-                                                    //style={styles.inputIDP}
+                                                    //style={styles.inputIDP}/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                     placeholder="Enter ID"
                                                     value={inputID}
                                                     onChangeText={handleChangeID}

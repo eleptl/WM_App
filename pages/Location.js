@@ -9,27 +9,32 @@ import axios from 'axios'
 import SearchBar from '../components/SearchBarLocation';
 
 const Location = ({ route }) => {
-
-  const { username } = route.params;
-  console.log('Username in Location:', username);
-  //navigazione
-  const navigation = useNavigation();
   //refresh
   const [refreshing, setRefreshing] = useState(false);
-  //elemento di ricerca
-  const [searchTerm, setSearchTerm] = useState('');
+
+  //navigazione
+  const navigation = useNavigation();
+
   //focus
   const isFocused = useIsFocused();
+
+  //data route
+  const { username } = route.params;
+
+  //elemento di ricerca
+  const [searchTerm, setSearchTerm] = useState('');
   //elementi
   const [items, setItems] = useState([]);
+
   //rendering
   const courses = [
     "Full Stack Developement Program",
     "Python Automation Testing Program",
     "UI/UX Program",
   ];
-  //blocco ricerca/comunicazione
-  const [called, setCalled] = useState(false);
+
+
+  //handle method
 
   //cambiamento termine di ricerca
   const handleChange = (event) => {
@@ -40,23 +45,18 @@ const Location = ({ route }) => {
     event.preventDefault();
     handleChange(searchTerm);
   };
-
-
-
   const handleSearch = async (searchTerm) => {
 
     searchTerm = searchTerm.toUpperCase();
-    console.log('Hai cercato:', searchTerm);
-    const indexAgg = 'http://192.168.1.161:5000/api/ubicazione/lgort/?lgpla=' /*'http://192.168.140.227:5000/api/ubicazione/lgort/?lgpla='*/ + searchTerm;
+    // const indexAgg = 'http://192.168.1.9:5000/api/ubicazione/lgort/?lgpla='  + searchTerm;
+    const indexAgg = 'http://192.168.1.161:5000/api/ubicazione/lgort/?lgpla=' + searchTerm;
 
     axios.put(indexAgg)
-    console.log('aggiornamento fatto su ', indexAgg)
 
-    const index = 'http://192.168.1.161:5000/api/ubicazione/?lgpla='/*' 'http://192.168.140.227:5000/api/ubicazione/?lgpla='*/ + searchTerm;
-    console.log('indirizzoCercatoGetLgpla:', index)
-
+    // const index = 'http://192.168.1.9:5000/api/ubicazione/?lgpla=';
+    const index = 'http://192.168.1.161:5000/api/ubicazione/?lgpla=';
     if (!(searchTerm === null)) {
-      navigation.navigate('LocationsResult', { username: 'admin', index: index, searchTerm: searchTerm });
+      navigation.navigate('LocationsResult', { username: username, index: index, searchTerm: searchTerm, sourcePage: route.name });
     }
   };
 

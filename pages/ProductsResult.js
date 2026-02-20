@@ -8,7 +8,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import axios from 'axios';
 import { stringifyValueWithProperty } from 'react-native-web/dist/cjs/exports/StyleSheet/compiler';
 //checkbox
-import { CheckBox, Icon } from '@rneui/themed'
+//import { CheckBox, Icon } from '@rneui/themed'
 //icon user/setting
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,131 +23,151 @@ import { FontAwesome } from '@expo/vector-icons';
 import { Linking } from "react-native";
 import { useCameraPermissions } from "expo-image-picker";
 
+import { LogBox } from 'react-native';
+LogBox.ignoreAllLogs(true);
 
 
 const ProductsResult = () => {
-    console.log('eccomi')
-
 
     const Stack = createStackNavigator();
-    //GVaribalesCheck
-    const [selectedIndex, setIndex] = React.useState(null);
-    //prova pop-up
-    const [modalVisible, setModalVisible] = useState(false);
-    //View a comparsa prelievo
-    const [viewPreleva, setViewPreleva] = useState(false)
-    //view a comparsa prenotazione
-    const [viewPrenota, setViewPrenota] = useState(false)
-
-    const route = useRoute();
-    let { index } = '';
-    let { searchTerm } = '';
-
-    console.log('productResultuser: ', route.params.username)
-    const username = route.params.username
-
-    if (!((index) === stringifyValueWithProperty(route.params))) {
-        index = stringifyValueWithProperty(route.params.index);
-        searchTerm = stringifyValueWithProperty(route.params.searchTerm)
-        console.log('searchterm: ', route.params.searchTerm)
-    }
     //navigazione
     const navigation = useNavigation();
+
+    //refresh
+    const [refresh, setRefresh] = useState(false)
+
+    //permessi fotocamera
+    const [status, requestPermissions] = useCameraPermissions();
+
+
+    const [selectedIndex, setIndex] = React.useState(null);
+    //popup principale
+    const [modalVisible, setModalVisible] = useState(false);
+    //View a popup prelievo
+    const [viewPreleva, setViewPreleva] = useState(false)
+    //view a popup prenotazione
+    const [viewPrenota, setViewPrenota] = useState(false)
     //focus
     const isFocused = useIsFocused();
-    //elementi
-    const [items, setItems] = useState([]);
-    //numero su pop-up
-    const [numberInput, setNumberInput] = useState('');
-    //id/ubic popup 
-    const [inputID, setInputID] = useState('');
-    const [inputUbic, setInputUbic] = useState('');
+
     //view Principale del popup
     const [popView, setPopView] = useState(false)
     //popUp Conferma prelievo
     const [viewConfermaPrelievo, setConfPrelievo] = useState(false)
     //pop up conferma prenotazione
     const [viewConfermaPrenota, setConfPrenota] = useState(false)
+
+    //id/ubic popup 
+    const [inputID, setInputID] = useState('');
+    const [inputUbic, setInputUbic] = useState('');
     //disponibilità merce
     const [dispon, setDispon] = useState(true)
     //editable input number
     const [intNum, setIntNum] = useState(true)
-    //prova verme
-    const [vermeValue, setVermeValue] = useState(0);
-    const [prenotValue, setPrenotValue] = useState(0)
-    //stato materiale in magazzino
+
+
+    //elementi
+    const [items, setItems] = useState([]);
+    //numero su pop-up
+    const [numberInput, setNumberInput] = useState('');
+
+    //dati prodotto
     const [bestqValue, setBestqValue] = useState('')
     const [lgplaValue, setLgpla] = useState('');
     const [lgortValue, setLgort] = useState('');
     const [maktxValue, setMaktxValue] = useState('');
-    //refresh
-    const [refresh, setRefresh] = useState(false)
-    //permessi fotocamera
-    const [status, requestPermissions] = useCameraPermissions();
+    const [matnrValue, setMatnrValue] = useState('');
+    const [vermeValue, setVermeValue] = useState(0);
+    const [prenotValue, setPrenotValue] = useState(0)
+    const [prensSpost, setPrenSpost] = useState(0);
+    const [pzArrivo, setPzArrivo] = useState(0);
 
-    const requestPermissionAgain = () => {
-        if (status.granted) {
-            status.canAskAgain = false
-            navigation.navigate('CameraScan', { username })
-            console.log(status)
-        } else {
-            Linking.openSettings();
-            requestPermissions();
-            console.log(status)
-        }
-    }
+    //dati route
+    const route = useRoute();
+    let { index } = '';
+    let { searchTerm } = '';
+
+    const username = route.params.username
 
 
+    //useEffect    
     useEffect(() => {
         handleSearch(index)
-        console.log('numebrInputProdRes', numberInput)
     }, [refresh])
 
 
 
+
+    if (!((index) === stringifyValueWithProperty(route.params))) {
+        if (route.params.index != null) {
+            index = stringifyValueWithProperty(route.params.index);
+        } else {
+            // index = 'http://192.168.1.9:5000/api/prodotto/?matnr=';  
+            index = 'http://192.168.1.161:5000/api/prodotto/?matnr=';
+        }
+
+        searchTerm = stringifyValueWithProperty(route.params.searchTerm).toUpperCase();
+        index = index + searchTerm;
+    }
+
+    //permessi fotocamera
+    const requestPermissionAgain = () => {
+        if (status.granted) {
+            status.canAskAgain = false
+            navigation.navigate('CameraScan', { username: username, sourcePage: route.name })
+        } else {
+            Linking.openSettings();
+            requestPermissions();
+        }
+
+    }
+
+    //handel method
     const handleSearch = async (index) => {
         const err = 'nessun dato trovato';
 
         try {
             const response = await axios.get(index);
+
             const prodotti = response.data.map((prodotto) => ({
                 data: prodotto
             }));
             setItems(prodotti)
             setMaktxValue(prodotti[0].data.MAKTX)
 
-
             if (prodotti.length === 0) {
                 alert('Nessun prodotto trovato con questo codice (MATNR)')
-                navigation.navigate('RiepStockScreen', { username: username })
+                navigation.navigate('RiepStockScreen', { username: username, sourcePage: route.name })
             }
         } catch (err) {
-            console.error('Error fetching data:', err);
-            alert('ERRORE DI CONNESSIONE')
-            navigation.navigate('RiepStockScreen', { username: username })
+            alert('ERRORE: è necessario il codice di un prodotto')
+            navigation.navigate('RiepStockScreen', { username: username, sourcePage: route.name })
         };
     };
 
     //cambio numero
     const handleChangeNumber = (input) => {
         if (input === ' ')
-            console.log('Il valore non può essere nullo')        //errore -->il valore non può essere nullo 
-        // Rimuovi eventuali caratteri non numerici usando una regex
+            Alert('Il valore non può essere nullo')
         const formattedInput = input.replace(/[^0-9]/g, '');
         setNumberInput(formattedInput);
     };
+
     //cambio id
     const handleChangeID = (input) => {
         setInputID(input);
     };
+
     //cambio ubic
     const handleChangeUbic = (input) => {
         setInputUbic(input);
     };
+
     //Button Spostamento pop-up
     const handlePressSpostamento = () => {
         console.log('gestion Spostamento pop-up')
     };
+
     //Button Consumo pop-up
     const handlePressConsumo = () => {
         if (selectedIndex !== 1 && selectedIndex !== 0) {
@@ -164,7 +184,6 @@ const ProductsResult = () => {
                 if (parseInt(numberInput) > vermeValue || parseInt(numberInput) > vermeValue - prenotValue) {
                     //editable input number
                     setIntNum(true);
-                    console.log('diponibilità', dispon)
                     setNumberInput('')
                     alert('La quantità inserita supera la disponibilità del prodotto.');
                     setDispon(false)
@@ -181,29 +200,26 @@ const ProductsResult = () => {
                             setViewPreleva(false)
                         }
                 }
-                console.log('gestion Consumo pop-up')
             }
 
     };
+
     //Button Annulla
     const handlePressAnnulla = () => {
-        //editable input number
         setIntNum(true);
         if (selectedIndex === 0) {
             setViewPreleva(false)
-            console.log('Gestione Annulla Preleva')
         }
 
         if (selectedIndex === 1) {
             setViewPrenota(false)
-            console.log('Gestione Annulla Preleva')
         }
     }
-    //Button Conferma
 
+    //Button Conferma
     const handlePressConferma = () => {
-        console.log('ccc:', prenotValue)
-        // if (selectedIndex === 0) {
+        // axios.post(`http://192.168.1.9:5000/api/updateConsumo/?MATNR=${matnrValue}&LGPLA=${lgplaValue}&MENGE=${numberInput}&LGORT=${lgortValue}&nID=${inputID}`);  
+        axios.post(`http://192.168.1.163:5000/api/updateConsumo/?MATNR=${matnrValue}&LGPLA=${lgplaValue}&MENGE=${numberInput}&LGORT=${lgortValue}&nID=${inputID}`);
         if (!inputID.trim()) {
             alert('ID OBBLIGATORIO');
             return;
@@ -231,20 +247,21 @@ const ProductsResult = () => {
             LGORT: lgortValue,
             LGPLA: lgplaValue,
             BESTQ: ' PZ Prenotati',
-            VERME: vermeValue /*- numberInput*/,
+            VERME: vermeValue,
             ZPRENOTATI: parseInt(prenotValue) + parseInt(numberInput)
         }];
 
-        axios.put('http://192.168.1.161:5000/api/prodotto'/*'http://192.168.140.227:5000/api/prodotto'*/, newData)
-            .then(response => {
-                console.log('ok')
-            })
-            .catch(error => {
-                console.log('ERRORE', error)
-            });
+        // axios.put('http://192.168.1.9:5000/api/prodotto', newData) 
+        // axios.put('http://192.168.1.161:5000/api/prodotto', newData) 
+        // .then(response => {
+        //     // console.log('ok')
+        // })
+        // .catch(error => {
+        //     // console.log('ERRORE', error)
+        // });
     }
 
-
+    //modifica 
     const modifyPreleva = () => {
 
         const newData = [{
@@ -254,22 +271,21 @@ const ProductsResult = () => {
             VERME: vermeValue - parseInt(numberInput),
             ZPRENOTATI: prenotValue
         }];
-        axios.put('http://192.168.1.161:5000/api/prodotto' /* 'http://192.168.140.227:5000/api/prodotto'*/, newData)
-            .then(response => {
-                console.log('ok')
-            })
-            .catch(error => {
-                console.log('ERRORE', error)
-            });
+
+        // axios.put('http://192.168.1.9:5000/api/prodotto' , newData) 
+        // axios.put('http://192.168.1.161:5000/api/prodotto' , newData) 
+        // .then(response => {
+        //     // console.log('ok')
+        // })
+        // .catch(error => {
+        //     // console.log('ERRORE', error)
+        // });
     }
 
     //chiusura popUp + reset scelta checkbox
     const handleClosePopup = () => {
-        //input number
         setIntNum(true)
-        //disponibilità prodotti
         setDispon(true);
-        //reset input number/id/ubic
         setNumberInput('')
         setInputUbic('')
         setInputID('')
@@ -284,14 +300,14 @@ const ProductsResult = () => {
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
-            style={{ color: 'black', opacity: 0.38, backgroundColor: item.data.BESTQ == 'Utilizzo Libero' ? '#276111' : item.data.BESTQ === 'Bloccato' ? '#FF735C' : '#FFB63C' }}
+            style={{ color: 'black', opacity: 0.38, backgroundColor: item.data.BESTQ == 'Utilizzo Libero' ? '#276111' : item.data.BESTQ == 'Bloccato' ? '#FF735C' : '#FFB63C' }}
 
             onPress={item.data.BESTQ == 'Controllo Qualita' || item.data.BESTQ == 'Bloccato' ?
-                () => { const bq = item.data.BESTQ; alert(bq); setModalVisible(false); setPopView(false); setVermeValue(item.data.VERME); setPrenotValue(item.data.ZPRENOTATI); setMaktxValue(item.data.MAKTX); }
-                : item.data.VERME == item.data.ZPRENOTATI ? () => { alert('Tutti i pezzi sono stati prenotati'); setModalVisible(false); setPopView(false); setMaktxValue(item.data.MAKTX); }
+                () => { const bq = item.data.BESTQ; alert('Stato prodotto: ' + bq); setModalVisible(false); setPopView(false); setVermeValue(item.data.VERME); setPrenotValue(item.data.ZPRENOTATI); setMaktxValue(item.data.MAKTX); setMatnrValue(item.data.MATNR); setLgpla(item.data.LGPLA); setPzArrivo(item.data.ZARRIVO); setPrenSpost(item.data.ZPRENSPOSTAMENTO); } // setLgort(item.data,LGORT);
+                : parseInt(item.data.VERME) == (parseInt(item.data.ZPRENOTATI) + parseInt(item.data.ZPRENSPOSTAMENTO) - parseInt(item.data.ZARRIVO)) ? () => { alert('Tutti i pezzi sono stati prenotati'); setModalVisible(false); setPopView(false); setMaktxValue(item.data.MAKTX); setMatnrValue(item.data.MATNR); setLgpla(item.data.LGPLA); setPzArrivo(item.data.ZARRIVO); setPrenSpost(item.data.ZPRENSPOSTAMENTO); } //setLgort(item.data,LGORT);
                     : () => {
                         setModalVisible(true); setPopView(true);
-                        setLgort(item.data.LGORT); setLgpla(item.data.LGPLA); setVermeValue(item.data.VERME); setPrenotValue(item.data.ZPRENOTATI); setBestqValue(item.data.BESTQ); setMaktxValue(item.data.MAKTX)
+                        setLgort(item.data.LGORT); setLgpla(item.data.LGPLA); setVermeValue(item.data.VERME); setPrenotValue(item.data.ZPRENOTATI); setBestqValue(item.data.BESTQ); setMaktxValue(item.data.MAKTX); setMatnrValue(item.data.MATNR); setLgpla(item.data.LGPLA); setPzArrivo(item.data.ZARRIVO); setPrenSpost(item.data.ZPRENSPOSTAMENTO);
                     }}
 
         >
@@ -307,9 +323,10 @@ const ProductsResult = () => {
                     {item.data.ZPRENOTATI !== 0 && (item.data.BESTQ === ' PZ Prenotati') &&
                         <Text style={styles.itemBestq}>{item.data.ZPRENOTATI + item.data.BESTQ}</Text>
                     }{item.data.ZPRENOTATI === 0 && item.data.BESTQ === 'Utilizzo Libero' &&
+
                         < Text style={styles.itemBestq}>{item.data.BESTQ}</Text>
                     }
-                    {(item.data.BESTQ === 'Bloccato') || (item.data.BESTQ === 'Controllo Qualita') &&
+                    {(item.data.BESTQ === "Bloccato" || item.data.BESTQ === 'Controllo Qualita') &&
                         < Text style={styles.itemBestq}> {item.data.BESTQ} </Text>
                     }
                 </View>
@@ -367,7 +384,7 @@ const ProductsResult = () => {
                                     {/**view --> contenitore interno pop-up -- tutti gli elementi */}
                                     <Text style={styles.searchtermPopUp} >{searchTerm}</Text>
 
-                                    <Text style={styles.textPopUpG}>descrizione prodotto</Text>
+                                    <Text style={styles.textPopUpG}>{maktxValue}</Text>
                                     {/**View -- riga {quantità*+inserimentoNumero+Verme} */}
                                     <View style={{ textAlignVertical: 'center', flexDirection: 'row', alignItems: 'center' }}>
                                         <Text>Quantità*</Text>
@@ -475,15 +492,15 @@ const ProductsResult = () => {
             </View >
 
             <View style={styles.containerEndBar}>
-                <TouchableOpacity style={styles.containerBack} onPress={() => navigation.navigate('RiepStockScreen', { username: username, search: '' })}>
+                <TouchableOpacity style={styles.containerBack} onPress={() => navigation.navigate('RiepStockScreen', { username: username, search: '', sourcePage: route.name })}>
                     <Ionicons name="arrow-undo-outline" size={35} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.containerScan} onPress={() => status.granted ? navigation.navigate('CameraScan', { username }) : requestPermissionAgain()}>
+                <TouchableOpacity style={styles.containerScan} onPress={() => status.granted ? navigation.navigate('CameraScan', { username: username, sourcePage: route.name }) : requestPermissionAgain()}>
                     <MaterialCommunityIcons name="line-scan" size={75} color="white" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.containerHome} onPress={() => navigation.navigate('EnterScreen', { username: username })}>
+                <TouchableOpacity style={styles.containerHome} onPress={() => navigation.navigate('EnterScreen', { username: username, sourcePage: route.name })}>
                     <AntDesign name="home" size={35} color="white" />
                 </TouchableOpacity>
             </View>

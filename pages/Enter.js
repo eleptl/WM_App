@@ -8,6 +8,11 @@ import { Ionicons } from '@expo/vector-icons';
 //movimenti
 import { useNavigation } from '@react-navigation/native';
 
+import { useState } from 'react';
+import { LogBox } from 'react-native';
+LogBox.ignoreAllLogs(true);
+
+
 const icon1 = require('../assets/images/storage-stacks_2821858.png');
 const icon2 = require('../assets/images/forklift_2821849.png')
 const icon3 = require('../assets/images/warehouse_2821904.png')
@@ -15,16 +20,17 @@ const icon4 = require('../assets/images/worldwide-shipping_2821856.png')
 const icon5 = require('../assets/images/conveyor_12808565.png')
 const icon6 = require('../assets/images/storage_2821815.png')
 
-
 const Enter = () => {
     const route = useRoute();
     const { username } = route.params;
 
-    console.log('username Enter', route.params)
-
+    //navigazione
     const navigation = useNavigation();
+
+    //focus
     const isFocused = useIsFocused();
 
+    //useEffect
     useEffect(() => {
         const backAction = () => {
             if (isFocused) {
@@ -56,7 +62,7 @@ const Enter = () => {
             <View style={{ marginTop: StatusBar.currentHeight + 40, height: '100%' }}>
 
                 <View style={{ width: '100%', flexDirection: 'row', height: '80%', marginLeft: 8 }}>
-                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('RiepStockScreen', { username: username })}>
+                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('RiepStockScreen', { username: username, sourcePage: route.name })}>
 
                         <Image source={icon1} style={styles.iconCont} />
                         <Text>Riepilogo Stock</Text>
@@ -70,12 +76,12 @@ const Enter = () => {
 
                 </View>
                 <View style={{ width: '100%', flexDirection: 'row', height: '80%', marginTop: -450, marginLeft: 8 }}>
-                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('EntrataMerci', { username: username })}>
+                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('EntrataMerci', { username: username, sourcePage: route.name })}>
                         <Image source={icon3} style={styles.iconCont} />
                         <Text>Entrata Merci</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('OtherPagesScreen', { username: username })}>
+                    <TouchableOpacity style={styles.elemento} onPress={() => navigation.navigate('OtherPagesScreen', { username: username, sourcePage: route.name })}>
                         <Image source={icon4} style={styles.iconCont} />
                         <Text>Uscita Merci</Text>
                     </TouchableOpacity>

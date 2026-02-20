@@ -4,19 +4,6 @@
     "slug": "UIProject",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "permissions": [
-      "CAMERA"
-    ],
-    "android": {
-      "permissions": [
-        "CAMERA"
-      ],
-      "package": "com.anonymous.UIProject"
-    },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -24,34 +11,43 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "packagerOpts": {
-      "port": 5000
+    "ios": {
+      "supportsTablet": true
     },
-    "updates": {
-      "fallbackToCacheTimeout": 0
+    "android": {
+      "package": "com.anonymous.UIProject",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
-    },
-    "adaptiveIcon": {
-      "foregroundImage": "./assets/adaptive-icon.png",
-      "backgroundColor": "#ffffff"
-    },
-    "package": "com.anonymous.UIProject"
-  },"plugins": [
-    [
-      "expo-barcode-scanner",
-      {
-        "cameraPermission": "Allow $(PRODUCT_NAME) to access camera.",
-        "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-        "recordAudioAndroid": true
+    "plugins": [
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "The app needs to access your calendar."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "210296ae-4e73-4a36-af51-d3c5b5bca0ea"
       }
-    ]
-  ],
-  "web": {
-    "favicon": "./assets/favicon.png"
+    },
+    "owner": "elettrap"
   }
 }

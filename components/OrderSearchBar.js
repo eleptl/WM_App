@@ -1,8 +1,7 @@
 //import { colors } from '@material-ui/core';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, form, StatusBar, Pressable, Button, TouchableOpacity, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-
 //icon
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -13,57 +12,53 @@ import axios from 'axios';
 
 import * as Clipboard from 'expo-clipboard';
 
+import { LogBox } from 'react-native';
+LogBox.ignoreAllLogs(true);
 
-const SearchBarLocation = ({ onSearch }) => {
-  //termine cercato
-  const [searchTerm, setSearchTerm] = useState('');
-  //suggerimmenti
-  const [suggestions, setSuggestions] = useState([]);
-  //navigation
+const OrderSearchBar = () => {
+
+  //navigazione
   const navigation = useNavigation();
 
+  //route e dati
+  const route = useRoute();
+  const username = route.params.username;
 
-  const [text, setText] = useState('');
+  //elemento cercato
+  const [searchTerm, setSearchTerm] = useState('');
+  //suggerimenti barra di ricerca
+  const [suggestion, setSuggestion] = useState([]);
 
   //handle method
-
-  //gestione suggerimenti
-  const handleSubmit1 = async (text) => {
-
+  const handleChange = async (text) => {
+    setSearchTerm(text);
     try {
       if (text === '' || text === null || text.length === 0) {
-        setSuggestions([])
+        setSuggestion([])
       }
-      text = text.toUpperCase(text)
-      // const response = await axios.get(`http://192.168.1.9:5000/api/ubicazione/lgplaList?q=${text}`); 
-      const response = await axios.get(`http://192.168.1.161:5000/api/ubicazione/lgplaList?q=${text}`);
-      setSuggestions(response.data.filter(item => item.includes(text))); // Filtra i suggerimenti che contengono la parte dell'input
+      // const response = await axios.get(`http://192.168.1.9:5000/api/allEbeln`);
+      const response = await axios.get(`http://192.168.1.163:5000/api/allEbeln`);
+      setSuggestion(response.data.filter(item => item.includes(text))); // Filtra i suggerimenti che contengono la parte dell'input
     } catch (error) {
       console.error('Error fetching suggestions:', error);
       setSuggestions([]);
     }
-  };
+  }
+
 
   const handleSuggestionPress = (suggestion) => {
-
     setSearchTerm(suggestion); // Imposta il termine di ricerca come suggerimento selezionato
-    setSuggestions([]); // Nascondi i suggerimenti
+    setSuggestion([]); // Nascondi i suggerimenti
   };
 
-  //cambaiamento testo digitato
-  const handleChange = (text) => {
-    setSearchTerm(text);
-    text = text.toUpperCase(text)
-    handleSubmit1(text)
+
+  const handleSubmit1 = (event) => {
+    // const index = `http://192.168.1.9:5000/api/ordine/?ebeln=${searchTerm}` 
+    const index = `http://192.168.1.161:5000/api/ordine/?ebeln=${searchTerm}`
+    navigation.navigate("POrderResult", { username: username, index: index, isSearch: true, ebeln: searchTerm, sourcePage: route.params.sourcePage })
+    setSearchTerm('')
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    onSearch(searchTerm);
-    setSearchTerm("");
-  };
-
-  //copio testo in barra di ricerca
   const handleCopyText = async () => {
     if (text.trim() === searchTerm) {
       Alert.alert('Error', 'Text input is empty');
@@ -84,15 +79,13 @@ const SearchBarLocation = ({ onSearch }) => {
       <SafeAreaView>
         <View style={styles.SearchCont}>
           <TextInput
-            type="text"
-            placeholder=" Cerca Ubicazione... "
+            type="number"
+            placeholder=" Cerca Ordine... "
             value={searchTerm}
 
             onChangeText={(text) => {
               handleChange(text);
-              handleSubmit1(text)
             }}
-          //onSubmitEditing={handleSubmit1}
           />
 
           <TouchableOpacity onPress={handleCopyText}>
@@ -100,9 +93,9 @@ const SearchBarLocation = ({ onSearch }) => {
           </TouchableOpacity>
         </View>
 
-        {suggestions.length > 0 && (
+        {suggestion.length > 0 && (
           <ScrollView style={styles.suggestionsContainer}>
-            {suggestions.map((item, index) => (
+            {suggestion.map((item, index) => (
               <TouchableOpacity key={index} onPress={() => handleSuggestionPress(item)}>
                 <Text style={styles.itemSugg}>{item}</Text>
               </TouchableOpacity>
@@ -110,15 +103,17 @@ const SearchBarLocation = ({ onSearch }) => {
           </ScrollView>
         )}
 
+
       </SafeAreaView>
-      <TouchableOpacity style={styles.SubCont} onPress={handleSubmit}>
+      <TouchableOpacity style={styles.SubCont} onPress={handleSubmit1}>
         <Text style={styles.searchText}>Cerca</Text>
         <FontAwesome5 style={{ paddingTop: 10 }} name="search" size={24} color="white" />
       </TouchableOpacity>
 
     </View>
   );
-};
+}
+
 
 const styles = StyleSheet.create({
   suggestionsContainer: {
@@ -130,8 +125,15 @@ const styles = StyleSheet.create({
     marginTop: -19,
     padding: 10,
     alignSelf: 'center',
-    width: '55%',
+    width: '74%',
     alignSelf: 'center',
+  },
+  itemSugg: {
+    fontSize: 17,
+    alignSelf: 'center',
+    marginBottom: '1.5%',
+    borderBottomWidth: 1,
+    borderBottomColor: 'black',
   },
   container: {
     backgroundColor: '#fff',
@@ -156,11 +158,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 0.5,
     height: 65,
-    width: '60%',
+    width: '80%',
     margin: 10,
     alignSelf: 'center',
     paddingLeft: 10,
     backgroundColor: '#fffe',
+
   },
   searchText: {
     color: 'white',
@@ -168,21 +171,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingTop: 10,
     paddingRight: 10,
-    width: 100
+    width: 100,
+    height: 40
   },
   copyIcon: {
     paddingTop: 20,
-    paddingLeft: '30%'
-  },
-  itemSugg: {
-    fontSize: 17,
-    alignSelf: 'center',
-    marginBottom: '1.5%',
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-  },
+    paddingLeft: '23%'
+  }
 });
 
-
-
-export default SearchBarLocation;
+export default OrderSearchBar;

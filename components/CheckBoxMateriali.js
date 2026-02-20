@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { StyleSheet, View, TextInput, Text } from 'react-native';
-import { CheckBox } from '@rneui/themed'
+//import { CheckBox } from '@rneui/themed'
 
 
 
@@ -10,33 +10,24 @@ const CheckBoxMateriali = ({ disabled, ...props }) => {
     const [isSelected, setSelection] = React.useState(false);
     //quantià merce selezionata
     const [nMerce, setQuantita] = useState('')
-    const [oneSelect, setSelect] = useState(false)
 
+    //handle method
 
-    //scelta materiali check
-    const handleCheck = () => {
-        setSelection(!isSelected)
-        console.log('check si')
-    }
     //cambio numero merce selezionata
     const handleChangeQuantita = (number) => {
         setQuantita(number)
         if (number === '') {
-            console.log('qta vuota')
             return
         }
         if (number <= 0) {
             alert('INSERISCI QUANTITA VALIDA')
             setQuantita('')
-            console.log('qta non valida')
             return
         }
-        console.log(number)
     }
 
 
     return (
-        // <View style={styles.container1}>
         <View style={styles.checkboxContainer}>
 
             <CheckBox
